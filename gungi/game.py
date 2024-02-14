@@ -48,7 +48,7 @@ class Game:
                 # TODO Maybe use a threat map instead of this https://levelup.gitconnected.com/finding-all-legal-chess-moves-2cb872d05bc6 https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/
 
                 # Test for each move to see if it would put me in check
-                """
+                
                 for move in self.possible_moves:
                     if move[0] == "x": continue
                     piece_targetted = self.board.get_top_piece(move[0], move[1])
@@ -79,7 +79,7 @@ class Game:
                         self.board.board_map[move[0]][move[1]][0] = "--"
 
                     self.board.board_map[piece_clicked.row][piece_clicked.column][piece_clicked.layer] = piece_clicked
-                """
+                
                 if DEBUG: print(str(piece_clicked) + " at " + str(row) + str(column) + str(piece_clicked.layer) + " selected")
             else:
                 if DEBUG: print(str(piece_clicked) + " at " + str(row) + str(column) + str(piece_clicked.layer) + " is not your piece")
