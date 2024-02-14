@@ -7,7 +7,6 @@ import datetime
 class Board:
     def __init__(self):
         self.board_map = []
-        self.board_state = ""
         self.create_board()
 
     # Creating the array that has all of the pieces
@@ -168,7 +167,7 @@ class Board:
                     if (valid_move != "x"):
                         valid_moves.append(valid_move)
 
-        # if DEBUG: print("Valid moves for " + str(piece) + str(piece.row) + str(piece.column) + str(piece.layer) + ": " + str(valid_moves))
+        if DEBUG: print("Valid moves for " + str(piece) + str(piece.row) + str(piece.column) + str(piece.layer) + ": " + str(valid_moves))
         return valid_moves
 
     # TODO Second part of this function is unreadable shit
@@ -260,7 +259,8 @@ class Board:
             
         return moves
 
-    # TODO Inefficient function. Eventually change this to keep track of all pieces on the board for each player and not just going through the entire board. 
+    # TODO Inefficient function. Eventually change this to keep track of all pieces on the board for each player and not just going through the entire board.
+    # DEPRECATED
     def test_for_check(self, board_to_check): # Returns the color of the player that's in check
 
         start_time = datetime.datetime.now()
@@ -294,6 +294,27 @@ class Board:
         print("Amount of frames this shitty code takes: " + str(((end_time - start_time).microseconds/1000)/(1000/60.0)))
 
         return (in_check, checking_pieces)
+    
+    def get_threat_map(self, player_color):
+        threat_map = []
+        
+        for j in range(ROWS):
+            section = []
+            for i in range(COLUMNS):
+                section.append(0)
+            threat_map.append(section)
+
+        for row in range(ROWS):
+            for column in range(COLUMNS):
+                piece = self.get_top_piece(row, column)
+                if piece != "--" and piece.color == player_color:
+                    move_set = self.get_piece_moves(piece, player_color, False)
+                    for move in move_set:
+                        threat_map[move[0]][move[1]] += 1
+
+        if DEBUG: print("Threat map for " + str(player_color) + " is: " + str(threat_map))
+        return threat_map
+
 
     def switch_color(self, color):
         if color == WHITE:

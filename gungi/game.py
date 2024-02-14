@@ -45,40 +45,9 @@ class Game:
                 self.selected = piece_clicked
                 self.possible_moves = self.board.get_piece_moves(self.selected, self.turn, shift) # Get the valid moves for the piece
 
-                # TODO Maybe use a threat map instead of this https://levelup.gitconnected.com/finding-all-legal-chess-moves-2cb872d05bc6 https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/
-
-                # Test for each move to see if it would put me in check
-                
-                for move in self.possible_moves:
-                    if move[0] == "x": continue
-                    piece_targetted = self.board.get_top_piece(move[0], move[1])
-
-                    # Temporarily moving the piece to test for check
-                    if piece_targetted != "--":
-                        if move[2] == "Friendly Stack Empty" or move[2] == "Enemy Stack Empty": # Both stacks
-                            self.board.board_map[piece_clicked.row][piece_clicked.column][piece_clicked.layer] = "--"
-                            self.board.board_map[piece_targetted.row][piece_targetted.column][piece_targetted.layer + 1] = piece_clicked
-                        else: # Attack
-                            self.board.board_map[piece_clicked.row][piece_clicked.column][piece_clicked.layer] = "--"
-                            self.board.board_map[piece_targetted.row][piece_targetted.column][piece_targetted.layer] = piece_clicked
-                    else: # Move
-                        self.board.board_map[piece_clicked.row][piece_clicked.column][piece_clicked.layer] = "--"
-                        self.board.board_map[move[0]][move[1]][0] = piece_clicked
-                    
-                    # Remove possible move if it puts me in check
-                    if self.board.test_for_check(self.board)[0] == self.turn:
-                        self.possible_moves[self.possible_moves.index(move)] = (move[0], move[1], "x") # Doesn't really remove, just flags it and therefore the move doesn't show
-
-                    # Then moving it back to the original position
-                    if piece_targetted != "--":
-                        if move[2] == "Friendly Stack Empty" or move[2] == "Enemy Stack Empty": # Both stacks
-                            self.board.board_map[piece_targetted.row][piece_targetted.column][piece_targetted.layer + 1] = "--"
-                        else: # Attack
-                            self.board.board_map[piece_targetted.row][piece_targetted.column][piece_targetted.layer] = piece_targetted
-                    else: # Move
-                        self.board.board_map[move[0]][move[1]][0] = "--"
-
-                    self.board.board_map[piece_clicked.row][piece_clicked.column][piece_clicked.layer] = piece_clicked
+                # TODO
+                # Get the threat map for the opposite player and prune possible moves
+                self.board.get_threat_map(self.board.switch_color(piece_clicked.color))
                 
                 if DEBUG: print(str(piece_clicked) + " at " + str(row) + str(column) + str(piece_clicked.layer) + " selected")
             else:
@@ -115,8 +84,6 @@ class Game:
                 current_move_notation += " ^ " + str(piece_clicked) + " " + str(row + 1) + str(column + 1) + str(piece_clicked.layer + 2)
             else:
                 return
-            
-            if DEBUG: print(self.board.test_for_check(self.board))
 
             self.change_turn()
 
