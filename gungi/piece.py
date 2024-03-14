@@ -16,8 +16,8 @@ class Piece:
         self.calculate_pos()
         
     def calculate_pos(self):
-        self.x = SQUARE_SIZE * self.column
-        self.y = SQUARE_SIZE * self.row
+        self.x = SQUARE_SIZE * self.column + XOFFSET
+        self.y = SQUARE_SIZE * self.row + YOFFSET
 
     def draw(self, window):
         if self.color == WHITE:

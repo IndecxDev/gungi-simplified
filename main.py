@@ -9,8 +9,8 @@ pygame.display.set_caption("Gungi")
 
 def get_board_position_from_mouse(pos):
     x, y = pos
-    row = y // SQUARE_SIZE
-    column = x // SQUARE_SIZE
+    row = (y - YOFFSET) // SQUARE_SIZE
+    column = (x - XOFFSET) // SQUARE_SIZE
     return row, column
 
 def main():

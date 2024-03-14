@@ -12,15 +12,15 @@ class Board:
     # Creating the array that has all of the pieces
     def create_board(self): 
         self.board_map = self.convert_notation_to_board([
-            [["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["bK", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"]],
+            [["--", "--", "--"],["--", "--", "--"],["bM", "--", "--"],["bF", "bC", "--"],["bK", "--", "--"],["bF", "bP", "bA"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"]],
+            [["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["bP", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"]],
             [["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"]],
             [["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"]],
             [["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"]],
+            [["--", "--", "--"],["wF", "wP", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"]],
             [["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"]],
-            [["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"]],
-            [["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"]],
-            [["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"]],
-            [["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["wK", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"]]])
+            [["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["wA", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"]],
+            [["--", "--", "--"],["wG", "wN", "wS"],["--", "--", "--"],["wM", "--", "--"],["wK", "--", "--"],["wP", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"]]])
         
     def convert_notation_to_board(self, board):
         piece_color = None
@@ -80,14 +80,17 @@ class Board:
     def draw(self, window, selected, moves):
 
         # Draw the board
-        window.fill(LIGHT_COLOR)
+        window.fill(BACKGROUND_COLOR)
         for row in range(ROWS):
             for column in range(row % 2, ROWS, 2):
-                pygame.draw.rect(window, DARK_COLOR, (row * SQUARE_SIZE, column * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
+                pygame.draw.rect(window, DARK_COLOR, (row * SQUARE_SIZE + XOFFSET, column * SQUARE_SIZE + YOFFSET, SQUARE_SIZE, SQUARE_SIZE))
+            for column in range(row % 2 + 1, ROWS, 2):
+                pygame.draw.rect(window, LIGHT_COLOR, (row * SQUARE_SIZE + XOFFSET, column * SQUARE_SIZE + YOFFSET, SQUARE_SIZE, SQUARE_SIZE))
+                
 
         # If I have a piece selected, make the square under it blue
         if selected != "--":
-            pygame.draw.rect(window, SELECTED_COLOR, (selected.column * SQUARE_SIZE, selected.row * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
+            pygame.draw.rect(window, SELECTED_COLOR, (selected.column * SQUARE_SIZE + XOFFSET, selected.row * SQUARE_SIZE + YOFFSET, SQUARE_SIZE, SQUARE_SIZE))
 
         #Draw the pieces
         for row in range(ROWS):
@@ -119,20 +122,24 @@ class Board:
         
         # Draw the possible moves for the selected piece
         for move in moves:
+            if type(move) == str: 
+                continue
+
+            moveArgument = (move[1] * SQUARE_SIZE + XOFFSET, move[0] * SQUARE_SIZE + YOFFSET)
             if (move[2] == "Move"):
-                window.blit(POSSIBLE_MOVE_VISUAL, (move[1] * SQUARE_SIZE, move[0] * SQUARE_SIZE))
+                window.blit(POSSIBLE_MOVE_VISUAL, moveArgument)
             elif(move[2] == "Attack"):
-                window.blit(POSSIBLE_ATTACK_VISUAL, (move[1] * SQUARE_SIZE, move[0] * SQUARE_SIZE))
+                window.blit(POSSIBLE_ATTACK_VISUAL, moveArgument)
             elif(move[2] == "Friendly Stack"):
-                window.blit(POSSIBLE_FRIENDLY_STACK_VISUAL, (move[1] * SQUARE_SIZE, move[0] * SQUARE_SIZE))
+                window.blit(POSSIBLE_FRIENDLY_STACK_VISUAL, moveArgument)
             elif(move[2] == "Enemy Stack"):
-                window.blit(POSSIBLE_ENEMY_STACK_VISUAL, (move[1] * SQUARE_SIZE, move[0] * SQUARE_SIZE))
+                window.blit(POSSIBLE_ENEMY_STACK_VISUAL, moveArgument)
             elif(move[2] == "Friendly Stack Empty"):
-                window.blit(POSSIBLE_FRIENDLY_STACK_EMPTY_VISUAL, (move[1] * SQUARE_SIZE, move[0] * SQUARE_SIZE))
+                window.blit(POSSIBLE_FRIENDLY_STACK_EMPTY_VISUAL, moveArgument)
             elif(move[2] == "Enemy Stack Empty"):
-                window.blit(POSSIBLE_ENEMY_STACK_EMPTY_VISUAL, (move[1] * SQUARE_SIZE, move[0] * SQUARE_SIZE))
+                window.blit(POSSIBLE_ENEMY_STACK_EMPTY_VISUAL, moveArgument)
             elif(move[2] == "Move Empty"):
-                window.blit(POSSIBLE_MOVE_EMPTY_VISUAL, (move[1] * SQUARE_SIZE, move[0] * SQUARE_SIZE))
+                window.blit(POSSIBLE_MOVE_EMPTY_VISUAL, moveArgument)
                     
     def get_piece_moves(self, piece, turn, shift):
         valid_moves = []
@@ -196,7 +203,7 @@ class Board:
                 return "x"
             
             # !!! THIS IS AN UNDREADABLE BODGED MESS, DO NOT TOUCH UNLESS ABSOLUTELY NECESSARY
-            if target_piece.color != turn:
+            if target_piece.color != turn: # Looking at enemy piece
                 if not shift:
                     if target_piece.layer < LAYERS - 1 and piece.type != "Fortress" and target_piece.type != "King":
                         state = "Enemy Stack Empty"
@@ -208,16 +215,14 @@ class Board:
                     return "x"
                 else:
                     return "xKing"
-            else: # (checking_piece.color == turn)
+            else: # Looking at friendly piece
                 if piece.type != "Fortress" and target_piece.type != "King":
                     if not shift:
                         state = "Friendly Stack Empty"
                     else:
                         state = "Friendly Stack"
-                elif target_piece.type != "King":
-                    return "x"
                 else:
-                    return "xKing"
+                    return "x"
         elif not shift:
             state = "Move"
         else:

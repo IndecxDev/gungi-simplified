@@ -47,7 +47,7 @@ class Game:
 
                 # TODO
                 # Get the threat map for the opposite player and prune possible moves
-                self.board.get_threat_map(self.board.switch_color(piece_clicked.color))
+                #self.board.get_threat_map(self.board.switch_color(piece_clicked.color))
                 
                 if DEBUG: print(str(piece_clicked) + " at " + str(row) + str(column) + str(piece_clicked.layer) + " selected")
             else:
