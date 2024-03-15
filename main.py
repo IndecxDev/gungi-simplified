@@ -29,10 +29,12 @@ def main():
                     if (pygame.key.get_mods() == 4097): # If shift is held
                         shift = True
 
-                    row, column = game.board.get_board_position_from_mouse(mousePos)
-                    # Check whether I clicked inside the board
-                    if row >= 0 and row < ROWS and column >= 0 and column < COLUMNS:
-                        game.click_board(row, column, shift)
+                    mouseRowAndColumn = game.board.get_board_position_from_mouse(mousePos)
+                    if mouseRowAndColumn != None: 
+                        row, column = mouseRowAndColumn[0], mouseRowAndColumn[1]
+                        # Check whether I clicked inside the board
+                        if row >= 0 and row < ROWS and column >= 0 and column < COLUMNS:
+                            game.click_board(row, column, shift)
 
                 if event.button == 3: # Right Click
                     game.deselect()

@@ -13,15 +13,18 @@ class Board:
         x, y = pos
         row = (y - YOFFSET) // SQUARE_SIZE
         column = (x - XOFFSET) // SQUARE_SIZE
-        return row, column
+        if row >= 0 and row < ROWS and column >= 0 and column < COLUMNS:
+            return row, column
+        else:
+            return None
 
     # Creating the array that has all of the pieces
     def create_board(self): 
         self.board_map = self.convert_notation_to_board([
-            [["--", "--", "--"],["--", "--", "--"],["bM", "--", "--"],["bF", "bC", "--"],["bK", "--", "--"],["bF", "bP", "bA"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"]],
+            [["--", "--", "--"],["bF", "bG", "--"],["bM", "--", "--"],["bF", "bC", "--"],["bK", "--", "--"],["bF", "bP", "bA"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"]],
             [["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["bP", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"]],
-            [["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"]],
-            [["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"]],
+            [["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["bC", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"]],
+            [["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["wP", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"]],
             [["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"]],
             [["--", "--", "--"],["wF", "wP", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"]],
             [["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"]],
@@ -93,8 +96,11 @@ class Board:
                 pygame.draw.rect(window, DARK_COLOR, (row * SQUARE_SIZE + XOFFSET, column * SQUARE_SIZE + YOFFSET, SQUARE_SIZE, SQUARE_SIZE))
             for column in range((row + 1) % 2, ROWS, 2):
                 pygame.draw.rect(window, LIGHT_COLOR, (row * SQUARE_SIZE + XOFFSET, column * SQUARE_SIZE + YOFFSET, SQUARE_SIZE, SQUARE_SIZE))
-                
         
+        if self.get_board_position_from_mouse(mousePos) != None:
+            mouseRow, mouseColumn = self.get_board_position_from_mouse(mousePos)
+            pygame.draw.rect(window, HIGHLIGHTED_COLOR, (mouseColumn * SQUARE_SIZE + XOFFSET, mouseRow * SQUARE_SIZE + YOFFSET, SQUARE_SIZE, SQUARE_SIZE))
+
 
         # If I have a piece selected, make the square under it blue
         if selected != "--":
@@ -173,14 +179,14 @@ class Board:
             moveset = PAWN_MOVES
 
         for possible_move in moveset[piece.layer]:
-                if 9 in possible_move or -9 in possible_move: # Checking for infinite movement
-                    nine_moves = self._nine_moves(possible_move, piece, turn, shift)
-                    for nine_move in nine_moves:
-                        valid_moves.append(nine_move)
-                else: # Normal moves
-                    valid_move = self._check_and_format_move(possible_move, piece, turn, shift)
-                    if (valid_move != "x"):
-                        valid_moves.append(valid_move)
+            if 9 in possible_move or -9 in possible_move: # Checking for infinite movement
+                nine_moves = self._nine_moves(possible_move, piece, turn, shift)
+                for nine_move in nine_moves:
+                    valid_moves.append(nine_move)
+            else: # Normal moves
+                valid_move = self._check_and_format_move(possible_move, piece, turn, shift)
+                if (valid_move != "x"):
+                    valid_moves.append(valid_move)
 
         if DEBUG: print("Valid moves for " + str(piece) + str(piece.row) + str(piece.column) + str(piece.layer) + ": " + str(valid_moves))
         return valid_moves
@@ -215,14 +221,16 @@ class Board:
                 if not shift:
                     if target_piece.layer < LAYERS - 1 and piece.type != "Fortress" and target_piece.type != "King":
                         state = "Enemy Stack Empty"
-                    else:
+                    elif target_piece.type != "King":
                         state = "Attack"
+                    else:
+                        state = "Enemy King"
                 elif target_piece.layer < LAYERS - 1 and piece.type != "Fortress" and target_piece.type != "King":
                     state = "Enemy Stack"
                 elif target_piece.type != "King":
                     return "x"
                 else:
-                    return "xKing"
+                    state = "Enemy King"
             else: # Looking at friendly piece
                 if piece.type != "Fortress" and target_piece.type != "King":
                     if not shift:
@@ -310,7 +318,7 @@ class Board:
     
     def get_threat_map(self, player_color):
         threat_map = []
-        
+        player_color = self.switch_color(player_color)
         for j in range(ROWS):
             section = []
             for i in range(COLUMNS):
@@ -325,7 +333,9 @@ class Board:
                     for move in move_set:
                         threat_map[move[0]][move[1]] += 1
 
-        if DEBUG: print("Threat map for " + str(player_color) + " is: " + str(threat_map))
+        if DEBUG: 
+            print("Threat map for " + str(player_color) + " is: ")
+            print(threat_map)
         return threat_map
 
 

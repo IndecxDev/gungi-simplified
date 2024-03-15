@@ -35,26 +35,7 @@ class Game:
     def click_board(self, row, column, shift): 
         piece_clicked = self.board.get_top_piece(row, column) # Get the top piece in a stack
 
-        if self.selected == "--": # Selecting a piece
-            # If clicked on an empty square
-            if piece_clicked == "--": 
-                return
-            
-            # If the piece is my color
-            if piece_clicked.color == self.turn: 
-                self.selected = piece_clicked
-                self.possible_moves = self.board.get_piece_moves(self.selected, self.turn, shift) # Get the valid moves for the piece
-
-                # TODO
-                # Get the threat map for the opposite player and prune possible moves
-                #self.board.get_threat_map(self.board.switch_color(piece_clicked.color))
-                
-                if DEBUG: print(str(piece_clicked) + " at " + str(row) + str(column) + str(piece_clicked.layer) + " selected")
-            else:
-                if DEBUG: print(str(piece_clicked) + " at " + str(row) + str(column) + str(piece_clicked.layer) + " is not your piece")
-                return
-        else: # Moving a piece 
-            
+        if self.selected != "--": # Already selected a piece and moving it
             current_move_notation = str(self.selected) + " " + str(self.selected.row) + str(self.selected.column) + str(self.selected.layer + 1)
 
             # Logic based on type of move
@@ -83,6 +64,8 @@ class Game:
                 # Move logging
                 current_move_notation += " ^ " + str(piece_clicked) + " " + str(row + 1) + str(column + 1) + str(piece_clicked.layer + 2)
             else:
+                self.deselect()
+                self.click_board(row, column, shift)
                 return
 
             self.change_turn()
@@ -97,6 +80,22 @@ class Game:
             if DEBUG: print(self.board)
             self.selected = "--"
             self.possible_moves = []
+        else: # Selecting a piece
+            # If clicked on an empty square
+            if piece_clicked == "--": 
+                return
+            
+            # If the piece is my color
+            if piece_clicked.color == self.turn: 
+                self.selected = piece_clicked
+                self.possible_moves = self.board.get_piece_moves(self.selected, self.turn, shift) # Get the valid moves for the piece
+                
+                if DEBUG: print(str(piece_clicked) + " at " + str(row) + str(column) + str(piece_clicked.layer) + " selected")
+            else:
+                if DEBUG: print(str(piece_clicked) + " at " + str(row) + str(column) + str(piece_clicked.layer) + " is not your piece")
+                return
+            
+            
 
     def deselect(self):
         self.selected = "--"
