@@ -9,6 +9,12 @@ class Board:
         self.board_map = []
         self.create_board()
 
+    def get_board_position_from_mouse(self, pos):
+        x, y = pos
+        row = (y - YOFFSET) // SQUARE_SIZE
+        column = (x - XOFFSET) // SQUARE_SIZE
+        return row, column
+
     # Creating the array that has all of the pieces
     def create_board(self): 
         self.board_map = self.convert_notation_to_board([
@@ -77,16 +83,18 @@ class Board:
         piece.move(row, column, layer)
     
     # Drawing the board and pieces
-    def draw(self, window, selected, moves):
+    def draw(self, window, selected, moves, mousePos):
 
         # Draw the board
         window.fill(BACKGROUND_COLOR)
+        pygame.draw.rect(window, BOARD_BORDER_COLOR, (XOFFSET - BOARD_BORDER_THICKNESS, YOFFSET - BOARD_BORDER_THICKNESS, ROWS * SQUARE_SIZE + 2 * BOARD_BORDER_THICKNESS, COLUMNS * SQUARE_SIZE + 2 * BOARD_BORDER_THICKNESS), BOARD_BORDER_THICKNESS, 10, 10, 10, 10)
         for row in range(ROWS):
             for column in range(row % 2, ROWS, 2):
                 pygame.draw.rect(window, DARK_COLOR, (row * SQUARE_SIZE + XOFFSET, column * SQUARE_SIZE + YOFFSET, SQUARE_SIZE, SQUARE_SIZE))
-            for column in range(row % 2 + 1, ROWS, 2):
+            for column in range((row + 1) % 2, ROWS, 2):
                 pygame.draw.rect(window, LIGHT_COLOR, (row * SQUARE_SIZE + XOFFSET, column * SQUARE_SIZE + YOFFSET, SQUARE_SIZE, SQUARE_SIZE))
                 
+        
 
         # If I have a piece selected, make the square under it blue
         if selected != "--":
@@ -338,3 +346,4 @@ class Board:
                     piece = self.get_piece(row, column, layer)
                     state += str(piece) + " "
         return state
+    

@@ -7,8 +7,8 @@ class Game:
         self._init()
         self.window = window
 
-    def update(self, shift):
-        self.board.draw(self.window, self.selected, self.possible_moves)
+    def update(self, shift, mousePos):
+        self.board.draw(self.window, self.selected, self.possible_moves, mousePos)
         pygame.display.update()
 
     def _init(self):

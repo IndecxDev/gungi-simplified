@@ -7,12 +7,6 @@ FPS = 60
 WINDOW = pygame.display.set_mode((WIDTH,HEIGHT))
 pygame.display.set_caption("Gungi")
 
-def get_board_position_from_mouse(pos):
-    x, y = pos
-    row = (y - YOFFSET) // SQUARE_SIZE
-    column = (x - XOFFSET) // SQUARE_SIZE
-    return row, column
-
 def main():
     run = True
     clock = pygame.time.Clock()
@@ -22,6 +16,7 @@ def main():
     # Main Game Loop
     while run:
         clock.tick(FPS)
+        mousePos = pygame.mouse.get_pos()
 
         shift = False
         for event in pygame.event.get():
@@ -34,9 +29,10 @@ def main():
                     if (pygame.key.get_mods() == 4097): # If shift is held
                         shift = True
 
-                    pos = pygame.mouse.get_pos()
-                    row, column = get_board_position_from_mouse(pos)
-                    game.click_board(row, column, shift)
+                    row, column = game.board.get_board_position_from_mouse(mousePos)
+                    # Check whether I clicked inside the board
+                    if row >= 0 and row < ROWS and column >= 0 and column < COLUMNS:
+                        game.click_board(row, column, shift)
 
                 if event.button == 3: # Right Click
                     game.deselect()
@@ -48,7 +44,7 @@ def main():
                 if event.key == pygame.K_LSHIFT:
                     game.update_shift_moves(False)
 
-        game.update(shift)
+        game.update(shift, mousePos)
         
         pygame.display.update()
     pygame.quit()
