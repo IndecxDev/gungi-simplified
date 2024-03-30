@@ -8,6 +8,10 @@ class Board:
     def __init__(self):
         self.board_map = []
         self.create_board()
+        self.white_king_pos = None
+        self.black_king_pos = None
+        self.player_in_check = None
+        self.pieces_checking = []
 
     def get_board_position_from_mouse(self, pos):
         x, y = pos
@@ -28,7 +32,7 @@ class Board:
             [["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"]],
             [["--", "--", "--"],["wF", "wP", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"]],
             [["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"]],
-            [["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["wA", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"]],
+            [["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"],["wC", "bS", "wG"],["wA", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"]],
             [["--", "--", "--"],["wG", "wN", "wS"],["--", "--", "--"],["wM", "--", "--"],["wK", "--", "--"],["wP", "--", "--"],["--", "--", "--"],["--", "--", "--"],["--", "--", "--"]]])
         
     def convert_notation_to_board(self, board):
@@ -97,10 +101,14 @@ class Board:
             for column in range((row + 1) % 2, ROWS, 2):
                 pygame.draw.rect(window, LIGHT_COLOR, (row * SQUARE_SIZE + XOFFSET, column * SQUARE_SIZE + YOFFSET, SQUARE_SIZE, SQUARE_SIZE))
         
+        if self.player_in_check == WHITE:
+            pygame.draw.rect(window, IN_CHECK_COLOR, (self.white_king_pos[1] * SQUARE_SIZE + XOFFSET, self.white_king_pos[0] * SQUARE_SIZE + YOFFSET, SQUARE_SIZE, SQUARE_SIZE))
+        if self.player_in_check == BLACK:
+            pygame.draw.rect(window, IN_CHECK_COLOR, (self.black_king_pos[1] * SQUARE_SIZE + XOFFSET, self.black_king_pos[0] * SQUARE_SIZE + YOFFSET, SQUARE_SIZE, SQUARE_SIZE))
+
         if self.get_board_position_from_mouse(mousePos) != None:
             mouseRow, mouseColumn = self.get_board_position_from_mouse(mousePos)
             pygame.draw.rect(window, HIGHLIGHTED_COLOR, (mouseColumn * SQUARE_SIZE + XOFFSET, mouseRow * SQUARE_SIZE + YOFFSET, SQUARE_SIZE, SQUARE_SIZE))
-
 
         # If I have a piece selected, make the square under it blue
         if selected != "--":
@@ -155,7 +163,7 @@ class Board:
             elif(move[2] == "Move Empty"):
                 window.blit(POSSIBLE_MOVE_EMPTY_VISUAL, moveArgument)
                     
-    def get_piece_moves(self, piece, turn, shift):
+    def get_piece_moves(self, piece, turn, shift, filterForCheck: bool):
         valid_moves = []
         moveset = []
 
@@ -178,20 +186,49 @@ class Board:
         elif piece.type == "Pawn":
             moveset = PAWN_MOVES
 
+        if filterForCheck:
+            threat_map = self.get_threat_map(turn)
+
         for possible_move in moveset[piece.layer]:
             if 9 in possible_move or -9 in possible_move: # Checking for infinite movement
                 nine_moves = self._nine_moves(possible_move, piece, turn, shift)
-                for nine_move in nine_moves:
-                    valid_moves.append(nine_move)
+
+                # Filtering if needed
+                if filterForCheck and piece.type == "King": # Moveset for the king (this probably doesn't have to be here cause the king never has 9-moves)
+                    for nine_move in nine_moves:
+                        if threat_map[nine_move[0]][nine_move[1]] == 0:
+                            valid_moves.append(nine_move)
+                elif filterForCheck: # Pieces other than the king can only take attacking pieces
+                    if len(self.pieces_checking) > 1:
+                            continue
+                    for nine_move in nine_moves:
+                        for piece_checking in self.pieces_checking:
+                            if nine_move[0] == piece_checking.row and nine_move[1] == piece_checking.column:
+                                valid_moves.append(nine_move)
+                else:
+                    for nine_move in nine_moves:
+                        valid_moves.append(nine_move)
+
             else: # Normal moves
                 valid_move = self._check_and_format_move(possible_move, piece, turn, shift)
                 if (valid_move != "x"):
-                    valid_moves.append(valid_move)
+                    # Filtering if needed
+                    if filterForCheck and piece.type == "King": # Moveset for the king
+                        if threat_map[valid_move[0]][valid_move[1]] == 0:
+                            valid_moves.append(valid_move)
+                    elif filterForCheck: # Pieces other than the king can only take attacking pieces
+                        if len(self.pieces_checking) > 1:
+                            continue
+                        # Technically it should be impossible to get out of check by taking attackers when there is more than one of them but the for is here just in case
+                        for piece_checking in self.pieces_checking:
+                            if valid_move[0] == piece_checking.row and valid_move[1] == piece_checking.column:
+                                valid_moves.append(valid_move)
+                    else:
+                        valid_moves.append(valid_move)
 
-        if DEBUG: print("Valid moves for " + str(piece) + str(piece.row) + str(piece.column) + str(piece.layer) + ": " + str(valid_moves))
+        # if DEBUG: print("Valid moves for " + str(piece) + str(piece.row) + str(piece.column) + str(piece.layer) + ": " + str(valid_moves))
         return valid_moves
 
-    # TODO Second part of this function is unreadable shit
     # Check what type of move would it be for a space
     def _check_and_format_move(self, possible_move, piece, turn, shift):
         if turn == BLACK: # Flip the moveset for black
@@ -257,93 +294,88 @@ class Board:
                 valid_move = self._check_and_format_move((i * sign_x, i * sign_y), piece, turn, shift)
                 if (valid_move != "x"):
                     moves.append(valid_move)
-                    if valid_move[2] == "Attack" and self.get_top_piece(valid_move[0],valid_move[1]).layer == 2 and MAX_STACKS_BLOCK_SIGHT:
-                        break
-                elif MAX_STACKS_BLOCK_SIGHT:
-                    break
             elif sign_x == 0: # Columns
                 valid_move = self._check_and_format_move((possible_move[0], i * sign_y), piece, turn, shift)
                 if (valid_move != "x"):
                     moves.append(valid_move)
-                    if valid_move[2] == "Attack" and self.get_top_piece(valid_move[0],valid_move[1]).layer == 2 and MAX_STACKS_BLOCK_SIGHT:
-                        break
-                elif MAX_STACKS_BLOCK_SIGHT:
-                    break
             elif sign_y == 0: # Rows
                 valid_move = self._check_and_format_move((i * sign_x, possible_move[1]), piece, turn, shift)
                 if (valid_move != "x"):
-                    moves.append(valid_move)
-                    if valid_move[2] == "Attack" and self.get_top_piece(valid_move[0],valid_move[1]).layer == 2 and MAX_STACKS_BLOCK_SIGHT:
-                        break
-                elif MAX_STACKS_BLOCK_SIGHT:
-                    break
-            
+                    moves.append(valid_move) 
         return moves
 
-    # TODO Inefficient function. Eventually change this to keep track of all pieces on the board for each player and not just going through the entire board.
-    # DEPRECATED
-    def test_for_check(self, board_to_check): # Returns the color of the player that's in check
-
-        start_time = datetime.datetime.now()
-
-        players = [WHITE,BLACK]
-        king = ""
-        in_check = "x"
-        checking_pieces = []
-
-        for player in players:
-            for row in range(ROWS):
-                for column in range(COLUMNS):
-                    piece = board_to_check.get_top_piece(row, column)
-                    if piece != "--":
-                        if piece.type == "King" and piece.color != player:
-                            king = piece
-                            break   
-            
-            for row in range(ROWS):
-                for column in range(COLUMNS):
-                    piece = board_to_check.get_top_piece(row, column)
-                    if piece != "--":
-                        if piece.color == player:
-                            moveset = board_to_check.get_piece_moves(piece, player, False)
-                            for move in moveset:
-                                if move[2] == "Attack" and move[0] == king.row and move[1] == king.column:
-                                    in_check = self.switch_color(player)
-                                    checking_pieces.append(piece)
-
-        end_time = datetime.datetime.now()
-        print("Amount of frames this shitty code takes: " + str(((end_time - start_time).microseconds/1000)/(1000/60.0)))
-
-        return (in_check, checking_pieces)
+    def in_check(self, player): # Returns if the player is in check
+        threat_map = self.get_threat_map(player)
+        if player == WHITE:
+            if threat_map[self.white_king_pos[0]][self.white_king_pos[1]] > 0:
+                return WHITE
+            else:
+                return None
+        elif player == BLACK:
+            if threat_map[self.black_king_pos[0]][self.black_king_pos[1]] > 0:
+                return BLACK
+            else:
+                return None
     
-    def get_threat_map(self, player_color):
+    def get_threat_map(self, player):
         threat_map = []
-        player_color = self.switch_color(player_color)
+        player = self.switch_color(player)
         for j in range(ROWS):
             section = []
             for i in range(COLUMNS):
                 section.append(0)
             threat_map.append(section)
 
+        # This way of doing it is still slow but when was python ever supposed to be fast
         for row in range(ROWS):
             for column in range(COLUMNS):
                 piece = self.get_top_piece(row, column)
-                if piece != "--" and piece.color == player_color:
-                    move_set = self.get_piece_moves(piece, player_color, False)
+                if piece != "--" and piece.color == player:
+                    move_set = self.get_piece_moves(piece, player, False, False)
                     for move in move_set:
                         threat_map[move[0]][move[1]] += 1
 
         if DEBUG: 
-            print("Threat map for " + str(player_color) + " is: ")
+            print("Threat map for " + str(player) + " is: ")
             print(threat_map)
         return threat_map
+    
+    def find_kings(self):
+        white_king = None
+        black_king = None
+        for row in range(ROWS):
+            for column in range(COLUMNS):
+                piece = self.get_top_piece(row, column)
+                if piece != "--":
+                    if piece.type == "King" and piece.color == WHITE:
+                        white_king = (piece.row, piece.column)
+                    elif piece.type == "King" and piece.color == BLACK:
+                        black_king = (piece.row, piece.column)
 
+        return (white_king, black_king)
 
     def switch_color(self, color):
         if color == WHITE:
             return BLACK
         else:
             return WHITE
+
+    def checkmate_test(self, player):
+        # If player isn't in check, he can't be in checkmate
+        if self.player_in_check != player:
+            return False
+
+        # Test if there exists at least one piece that has at least one move available
+        for row in range(ROWS):
+            for column in range(COLUMNS):
+                piece = self.get_top_piece(row, column)
+                if piece != "--":
+                    if piece.color == player:
+                        if self.get_piece_moves(piece, player, False, True) != []:
+                            return False
+        
+        # If the player can't make any move and is in check, it's checkmate
+        return True
 
     # For visualizing in the terminal
     def __repr__(self) -> str:
