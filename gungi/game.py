@@ -7,9 +7,8 @@ class Game:
         self._init()
         self.window = window
 
-    def update(self, shift, mousePos):
-        self.board.draw(self.window, self.selected, self.possible_moves, mousePos)
-        pygame.display.update()
+    def draw_game(self, mousePos):
+        self.board.draw(self.window, self.selected, self.possible_moves, mousePos, self.turn)
 
     def _init(self):
         self.selected = "--"
@@ -19,15 +18,15 @@ class Game:
         self.ply_number = 1
         self.possible_moves = []
         self.board.white_king_pos, self.board.black_king_pos = self.board.find_kings()
-
         self.move_log = []
+        self.checkmated = None
 
     def reset(self):
         self._init()
 
     def update_shift_moves(self, shift):
         # TODO this is mostly duplicate code from click_board() function
-        if self.selected != "--":
+        if self.selected != "--" and self.selected.color == self.turn:
             if self.selected.type == "King":
                 self.possible_moves = self.board.get_piece_moves(self.selected, self.turn, shift, True)
                 # Test if I have the opposing player's piece under this one
@@ -58,7 +57,7 @@ class Game:
     def click_board(self, row, column, shift): 
         piece_clicked = self.board.get_top_piece(row, column) # Get the top piece in a stack
 
-        if self.selected != "--": # Already selected a piece and moving it
+        if self.selected != "--" and self.selected.color == self.turn: # Already selected a piece and moving it
             current_move_notation = str(self.selected) + " " + str(self.selected.row) + str(self.selected.column) + str(self.selected.layer + 1)
 
             # Logic based on type of move
@@ -162,6 +161,7 @@ class Game:
                 
                 if DEBUG: print(str(piece_clicked) + " at " + str(row) + str(column) + str(piece_clicked.layer) + " selected")
             else:
+                self.selected = piece_clicked
                 if DEBUG: print(str(piece_clicked) + " at " + str(row) + str(column) + str(piece_clicked.layer) + " is not your piece")
                 return
 

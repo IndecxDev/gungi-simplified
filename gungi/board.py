@@ -90,7 +90,7 @@ class Board:
         piece.move(row, column, layer)
     
     # Drawing the board and pieces
-    def draw(self, window, selected, moves, mousePos):
+    def draw(self, window, selected, moves, mousePos, turn):
 
         # Draw the board
         window.fill(BACKGROUND_COLOR)
@@ -110,9 +110,12 @@ class Board:
             mouseRow, mouseColumn = self.get_board_position_from_mouse(mousePos)
             pygame.draw.rect(window, HIGHLIGHTED_COLOR, (mouseColumn * SQUARE_SIZE + XOFFSET, mouseRow * SQUARE_SIZE + YOFFSET, SQUARE_SIZE, SQUARE_SIZE))
 
-        # If I have a piece selected, make the square under it blue
+        # If I have a piece selected, make the square under it blue or pink
         if selected != "--":
-            pygame.draw.rect(window, SELECTED_COLOR, (selected.column * SQUARE_SIZE + XOFFSET, selected.row * SQUARE_SIZE + YOFFSET, SQUARE_SIZE, SQUARE_SIZE))
+            if selected.color == turn:
+                pygame.draw.rect(window, SELECTED_COLOR, (selected.column * SQUARE_SIZE + XOFFSET, selected.row * SQUARE_SIZE + YOFFSET, SQUARE_SIZE, SQUARE_SIZE))
+            else:
+                pygame.draw.rect(window, ENEMY_SELECTED_COLOR, (selected.column * SQUARE_SIZE + XOFFSET, selected.row * SQUARE_SIZE + YOFFSET, SQUARE_SIZE, SQUARE_SIZE))
 
         #Draw the pieces
         for row in range(ROWS):
@@ -335,9 +338,9 @@ class Board:
                     for move in move_set:
                         threat_map[move[0]][move[1]] += 1
 
-        if DEBUG: 
-            print("Threat map for " + str(player) + " is: ")
-            print(threat_map)
+        # if DEBUG: 
+        #    print("Threat map for " + str(player) + " is: ")
+        #    print(threat_map)
         return threat_map
     
     def find_kings(self):

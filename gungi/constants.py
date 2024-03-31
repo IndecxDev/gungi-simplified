@@ -18,7 +18,7 @@ PAWNS = 9
 MAX_PIECES_IN_PLAY = 26
 
 # Technical settings
-WIDTH, HEIGHT = 1450, 1000
+WIDTH, HEIGHT = 1800, 1000
 ROWS, COLUMNS, LAYERS = 9, 9, 3
 SQUARE_SIZE = 100
 YOFFSET = 50
@@ -32,9 +32,16 @@ BACKGROUND_COLOR = (180, 160, 140)
 LIGHT_COLOR = (255, 220, 169)
 DARK_COLOR = (212, 183, 141)
 SELECTED_COLOR = (100, 140, 255)
+ENEMY_SELECTED_COLOR = (255, 153, 153)
 HIGHLIGHTED_COLOR = (255, 230, 194)
 MADE_MOVE_COLOR = (255, 150, 150)
-IN_CHECK_COLOR = (255, 50, 50)
+IN_CHECK_COLOR = (220, 50, 50)
+
+BUTTON_BORDER_THICKNESS = 5
+BUTTON_COLOR = (212, 183, 141)
+BUTTON_BORDER_COLOR = (69, 39, 0)
+BUTTON_HIGHLIGHTED_COLOR = (255, 220, 169)
+BUTTON_CLICKED_COLOR = (255, 230, 194)
 
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
@@ -111,6 +118,11 @@ THREE_STACK_VISUAL_WW = pygame.image.load("assets/indicators/threeStackIndicator
 THREE_STACK_VISUAL_BB = pygame.image.load("assets/indicators/threeStackIndicatorBB.png")
 THREE_STACK_VISUAL_WB = pygame.image.load("assets/indicators/threeStackIndicatorWB.png")
 THREE_STACK_VISUAL_BW = pygame.image.load("assets/indicators/threeStackIndicatorBW.png")
+
+# Icons
+ICON = pygame.image.load("assets/icon.png")
+
+ICON_RESET = pygame.image.load("assets/icons/reset.png")
 
 # Movesets
 KING_MOVES = [[(-1,-1),(0,-1),(1,-1),(-1,0),(1,0),(-1,1),(0,1),(1,1)],
