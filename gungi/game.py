@@ -1,4 +1,3 @@
-import pygame
 from .constants import BLACK, WHITE, DEBUG, MOVE_LOGS
 from .board import Board
 
@@ -9,9 +8,13 @@ class Game:
 
     def draw_game(self, mousePos):
         self.board.draw(self.window, self.selected, self.possible_moves, mousePos, self.turn)
+        board_pos = self.board.get_board_position_from_mouse(mousePos)
+        if board_pos != None:
+            self.hovering_over = self.board.get_top_piece(board_pos[0], board_pos[1])
 
     def _init(self):
         self.selected = "--"
+        self.hovering_over = None
         self.board = Board()
         self.turn = WHITE
         self.move_number = 1
@@ -57,7 +60,7 @@ class Game:
     def click_board(self, row, column, shift): 
         piece_clicked = self.board.get_top_piece(row, column) # Get the top piece in a stack
 
-        if self.selected != "--" and self.selected.color == self.turn: # Already selected a piece and moving it
+        if self.selected != "--" and self.selected.color == self.turn and self.checkmated == None: # Already selected a piece and moving it
             current_move_notation = str(self.selected) + " " + str(self.selected.row) + str(self.selected.column) + str(self.selected.layer + 1)
 
             # Logic based on type of move
@@ -104,12 +107,14 @@ class Game:
             # Update check
             self.board.player_in_check = self.board.in_check(self.turn)
 
-            # BUG This will probably be bugged when a player in check gets out of check and immediately checks the other player but whatever it's not like anyone's gonna ever test this
+            # BUG This will probably be bugged when a player in check gets out of check and 
+            # immediately checks the other player but whatever it's not like anyone's gonna ever test this
             if self.board.player_in_check != None:
                 if self.selected not in self.board.pieces_checking:
                     self.board.pieces_checking.append(self.selected)
                 if self.board.checkmate_test(self.turn):
                     print("CHECKMATE")
+                    self.checkmated = self.turn
             else:
                 self.board.pieces_checking == []
     
@@ -125,7 +130,8 @@ class Game:
             self.possible_moves = []
         else: # Selecting a piece
             # If clicked on an empty square
-            if piece_clicked == "--": 
+            if piece_clicked == "--":
+                self.selected = "--"
                 return
             
             # If clicked on my piece (Movement filtering logic)
@@ -176,3 +182,7 @@ class Game:
             print("White's Turn")
         else:
             print("Black's Turn")
+
+    # TODO
+    def make_random_move(self):
+        pass

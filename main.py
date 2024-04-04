@@ -4,7 +4,7 @@ pygame.init()
 
 from gungi.constants import *
 from gungi.game import Game
-from gungi.panel import *
+from gungi.interface import *
 
 FPS = 60
 
@@ -16,7 +16,7 @@ def main():
     run = True
     clock = pygame.time.Clock()
     game = Game(WINDOW)
-    panel = Panel(WINDOW)
+    interface = Interface(WINDOW)
     
     if DEBUG: print("Game Started")
 
@@ -42,15 +42,16 @@ def main():
                         # Check whether I clicked inside the board
                         if row >= 0 and row < ROWS and column >= 0 and column < COLUMNS:
                             game.click_board(row, column, shift)
-                    else:
-                        panel.click_panel(mousePos, game)
+                    
+                    interface.click_interface(mousePos, game)
 
                 if event.button == 3: # Right Click
                     game.deselect()
+                    interface.right_click()
             
             if event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:
-                    panel.deselect()
+                    interface.deselect()
             
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LSHIFT:
@@ -60,7 +61,7 @@ def main():
                     game.update_shift_moves(False)
 
         game.draw_game(mousePos)
-        panel.update(mousePos)
+        interface.update(mousePos)
         pygame.display.update()
     pygame.quit()
 

@@ -1,8 +1,6 @@
 import pygame
-import time
 from .constants import *
 from .piece import Piece
-import datetime
 
 class Board:
     def __init__(self):
@@ -329,7 +327,7 @@ class Board:
                 section.append(0)
             threat_map.append(section)
 
-        # This way of doing it is still slow but when was python ever supposed to be fast
+        # This way of doing it is still slow but it's good enough
         for row in range(ROWS):
             for column in range(COLUMNS):
                 piece = self.get_top_piece(row, column)

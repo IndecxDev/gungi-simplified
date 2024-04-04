@@ -1,2 +1,3 @@
 *.pyc
 gungi/__pycache__/
+gungi/components/__pycache__/
