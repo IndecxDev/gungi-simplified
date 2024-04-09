@@ -1,5 +1,7 @@
 from .constants import BLACK, WHITE, DEBUG, MOVE_LOGS
 from .board import Board
+import random
+import copy
 
 class Game:
     def __init__(self, window) -> None:
@@ -28,34 +30,8 @@ class Game:
         self._init()
 
     def update_shift_moves(self, shift):
-        # TODO this is mostly duplicate code from click_board() function
-        if self.selected != "--" and self.selected.color == self.turn:
-            if self.selected.type == "King":
-                self.possible_moves = self.board.get_piece_moves(self.selected, self.turn, shift, True)
-                # Test if I have the opposing player's piece under this one
-                # If yes, remove it temporarily, and if one of the king's possible moves are threatening (read "would put him in check") remove that move
-                if self.selected.layer >= 1:
-                    if self.board.get_piece(self.selected.row, self.selected.column, self.selected.layer - 1).color == self.board.switch_color(self.turn):
-                        self.board.board_map[self.selected.row][self.selected.column][self.selected.layer] = "--"
-                        threat_map = self.board.get_threat_map(self.turn)
-                        revised_moves = []
-                        for move in self.possible_moves:
-                            if threat_map[move[0]][move[1]] == 0:
-                                revised_moves.append(move)
-                        self.board.board_map[self.selected.row][self.selected.column][self.selected.layer] = self.selected
-                        self.possible_moves = revised_moves
-            elif self.board.player_in_check:
-                self.possible_moves = self.board.get_piece_moves(self.selected, self.turn, shift, True) # Moves when in check
-            else:
-                self.possible_moves = self.board.get_piece_moves(self.selected, self.turn, shift, False) # Normal moves
-                # Test if I have the opposing player's piece under this one
-                # If yes, remove it temporarily, and if the king is in check under that condition, remove all possible moves
-                if self.selected.layer >= 1:
-                    if self.board.get_piece(self.selected.row, self.selected.column, self.selected.layer - 1).color == self.board.switch_color(self.turn):
-                        self.board.board_map[self.selected.row][self.selected.column][self.selected.layer] = "--"
-                        if self.board.in_check(self.turn):
-                            self.possible_moves = []
-                        self.board.board_map[self.selected.row][self.selected.column][self.selected.layer] = self.selected
+        if self.selected != "--":
+            self.legal_moves(self.selected, shift, True)
 
     def click_board(self, row, column, shift): 
         piece_clicked = self.board.get_top_piece(row, column) # Get the top piece in a stack
@@ -122,10 +98,12 @@ class Game:
             self.move_log.append(current_move_notation) 
             if MOVE_LOGS: print(str(self.move_number) + "." + str(self.ply_number) + ":" + current_move_notation)
 
-            if self.turn == WHITE: self.move_number += 1 # Add 1 to move number after both players play
+            if self.turn == WHITE: 
+                self.move_number += 1 # Add 1 to move number after both players play
             self.ply_number = 1 + (self.ply_number % 2)
 
             if DEBUG: print(self.board)
+
             self.selected = "--"
             self.possible_moves = []
         else: # Selecting a piece
@@ -134,42 +112,47 @@ class Game:
                 self.selected = "--"
                 return
             
-            # If clicked on my piece (Movement filtering logic)
-            if piece_clicked.color == self.turn: 
-                self.selected = piece_clicked
-                self.board.player_in_check = self.board.in_check(self.turn)
-                if self.selected.type == "King":
-                    self.possible_moves = self.board.get_piece_moves(self.selected, self.turn, shift, True)
-                    # Test if I have the opposing player's piece under this one
-                    # If yes, remove it temporarily, and if one of the king's possible moves are threatening (read "would put him in check") remove that move
-                    if self.selected.layer >= 1:
-                        if self.board.get_piece(row, column, self.selected.layer - 1).color == self.board.switch_color(self.turn):
-                            self.board.board_map[row][column][self.selected.layer] = "--"
-                            threat_map = self.board.get_threat_map(self.turn)
-                            revised_moves = []
-                            for move in self.possible_moves:
-                                if threat_map[move[0]][move[1]] == 0:
-                                    revised_moves.append(move)
-                            self.board.board_map[row][column][self.selected.layer] = self.selected
-                            self.possible_moves = revised_moves
-                elif self.board.player_in_check:
-                    self.possible_moves = self.board.get_piece_moves(self.selected, self.turn, shift, True) # Moves when in check
-                else:
-                    self.possible_moves = self.board.get_piece_moves(self.selected, self.turn, shift, False) # Normal moves
-                    # Test if I have the opposing player's piece under this one
-                    # If yes, remove it temporarily, and if the king is in check under that condition, remove all possible moves
-                    if self.selected.layer >= 1:
-                        if self.board.get_piece(row, column, self.selected.layer - 1).color == self.board.switch_color(self.turn):
-                            self.board.board_map[row][column][self.selected.layer] = "--"
-                            if self.board.in_check(self.turn):
-                                self.possible_moves = []
-                            self.board.board_map[row][column][self.selected.layer] = self.selected
-                
-                if DEBUG: print(str(piece_clicked) + " at " + str(row) + str(column) + str(piece_clicked.layer) + " selected")
+            # Movement filtering logic
+            self.legal_moves(piece_clicked, shift, True)
+
+    def legal_moves(self, piece_clicked, shift, select_piece: bool):
+        if piece_clicked.color == self.turn:
+            previous_selected = self.selected
+            self.selected = piece_clicked
+            self.board.player_in_check = self.board.in_check(self.turn)
+            if self.selected.type == "King":
+                self.possible_moves = self.board.get_piece_moves(self.selected, self.turn, shift, True)
+                # Test if I have the opposing player's piece under this one
+                # If yes, remove it temporarily, and if one of the king's possible moves are threatening (read "would put him in check") remove that move
+                if self.selected.layer >= 1:
+                    if self.board.get_piece(self.selected.row, self.selected.column, self.selected.layer - 1).color == self.board.switch_color(self.turn):
+                        self.board.board_map[self.selected.row][self.selected.column][self.selected.layer] = "--"
+                        threat_map = self.board.get_threat_map(self.turn)
+                        revised_moves = []
+                        for move in self.possible_moves:
+                            if threat_map[move[0]][move[1]] == 0:
+                                revised_moves.append(move)
+                        self.board.board_map[self.selected.row][self.selected.column][self.selected.layer] = self.selected
+                        self.possible_moves = revised_moves
+            elif self.board.player_in_check:
+                self.possible_moves = self.board.get_piece_moves(self.selected, self.turn, shift, True) # Moves when in check
             else:
-                self.selected = piece_clicked
-                if DEBUG: print(str(piece_clicked) + " at " + str(row) + str(column) + str(piece_clicked.layer) + " is not your piece")
-                return
+                self.possible_moves = self.board.get_piece_moves(self.selected, self.turn, shift, False) # Normal moves
+                # Test if I have the opposing player's piece under this one
+                # If yes, remove it temporarily, and if the king is in check under that condition, remove all possible moves
+                if self.selected.layer >= 1:
+                    if self.board.get_piece(self.selected.row, self.selected.column, self.selected.layer - 1).color == self.board.switch_color(self.turn):
+                        self.board.board_map[self.selected.row][self.selected.column][self.selected.layer] = "--"
+                        if self.board.in_check(self.turn):
+                            self.possible_moves = []
+                self.board.board_map[self.selected.row][self.selected.column][self.selected.layer] = self.selected
+
+            if not select_piece:
+                self.selected = previous_selected
+            return self.possible_moves
+        else:
+            self.selected = piece_clicked
+        return None
 
     def deselect(self):
         self.selected = "--"
@@ -185,4 +168,58 @@ class Game:
 
     # TODO
     def make_random_move(self):
-        pass
+        if self.checkmated == None:
+            white_pieces, black_pieces = self.board.get_all_moveable_pieces()
+            filtered_normal_moves = []
+            filtered_shift_moves = []
+            if self.turn == WHITE:
+                while filtered_normal_moves == [] and filtered_shift_moves == []:
+                    rand_num = random.randint(0, len(white_pieces) - 1)
+
+                    self.click_board(white_pieces[rand_num].row, white_pieces[rand_num].column, False)
+                    normal_moves = self.possible_moves
+                    self.click_board(white_pieces[rand_num].row, white_pieces[rand_num].column, True)
+                    shift_moves = self.possible_moves
+
+                    for move in normal_moves:
+                        if "Empty" not in move[2] or "Enemy Stack Empty" in move[2]:
+                            filtered_normal_moves.append(move)
+                    for move in shift_moves:
+                        if "Empty" not in move[2]:
+                            filtered_shift_moves.append(move)
+            else:
+                while filtered_normal_moves == [] and filtered_shift_moves == []:
+                    rand_num = random.randint(0, len(black_pieces) - 1)
+
+                    self.click_board(black_pieces[rand_num].row, black_pieces[rand_num].column, False)
+                    normal_moves = self.possible_moves
+                    self.click_board(black_pieces[rand_num].row, black_pieces[rand_num].column, True)
+                    shift_moves = self.possible_moves
+
+                    for move in normal_moves:
+                        if "Empty" not in move or "Enemy Stack Empty" in move:
+                            filtered_normal_moves.append(move)
+                    for move in shift_moves:
+                        if "Empty" not in move:
+                            filtered_shift_moves.append(move)
+
+            previous_board = copy.deepcopy(self.board)
+
+            # 50% it will make a stack move (friendly or enemy)(if possible), otherwise a makes a normal move (move or attack)
+            if (filtered_shift_moves != [] and random.randint(0, 1) == 0) or filtered_normal_moves == []:
+                rand_num2 = random.randint(0, len(filtered_shift_moves) - 1)
+                move = filtered_shift_moves[rand_num2]
+                self.possible_moves = [move]
+                self.click_board(move[0], move[1], True)
+            else:
+                rand_num2 = random.randint(0, len(filtered_normal_moves) - 1)
+                move = filtered_normal_moves[rand_num2]
+                self.possible_moves = [move]
+                self.click_board(move[0], move[1], False)
+            
+            if previous_board == self.board:
+                print("something went wrong")
+
+        else:
+            print("Cannot make move, player checkmated.")
+            

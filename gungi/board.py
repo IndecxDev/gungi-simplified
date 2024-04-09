@@ -10,6 +10,8 @@ class Board:
         self.black_king_pos = None
         self.player_in_check = None
         self.pieces_checking = []
+        self.white_pieces, self.black_pieces = self.get_all_moveable_pieces()
+        print(self.white_pieces)
 
     def get_board_position_from_mouse(self, pos):
         x, y = pos
@@ -304,6 +306,20 @@ class Board:
                 if (valid_move != "x"):
                     moves.append(valid_move) 
         return moves
+
+    # Returns all white pieces and all black pieces on the board
+    def get_all_moveable_pieces(self):
+        white_pieces = []
+        black_pieces = []
+        for row in range(ROWS):
+            for column in range(COLUMNS):
+                piece = self.get_top_piece(row, column)
+                if piece != "--":
+                    if piece.color == WHITE:
+                        white_pieces.append(piece)
+                    elif piece.color == BLACK:
+                        black_pieces.append(piece)
+        return (white_pieces, black_pieces)                 
 
     def in_check(self, player): # Returns if the player is in check
         threat_map = self.get_threat_map(player)
