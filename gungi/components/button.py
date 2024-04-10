@@ -54,7 +54,10 @@ class Button:
         if button_function == "Text Smaller":
             self.text_object.change_font_size(self.text_object.size - 1)
         if button_function == "Random Move":
-            game.make_random_move()
+            if game.checkmated == None:
+                game.make_random_move()
+            else:
+                print(str(game.checkmated) + " checkmated, cannot make a move.")
         if button_function == "Download":
             pass
         if button_function == "Upload":

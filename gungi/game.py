@@ -173,7 +173,13 @@ class Game:
             filtered_normal_moves = []
             filtered_shift_moves = []
             if self.turn == WHITE:
+                choose_tries = 0
                 while filtered_normal_moves == [] and filtered_shift_moves == []:
+                    choose_tries += 1
+                    if choose_tries > 50:
+                        self.checkmated = WHITE
+                        print("Cannot find piece with valid moves, White Checkmated")
+                        return None
                     rand_num = random.randint(0, len(white_pieces) - 1)
 
                     self.click_board(white_pieces[rand_num].row, white_pieces[rand_num].column, False)
@@ -188,7 +194,13 @@ class Game:
                         if "Empty" not in move[2]:
                             filtered_shift_moves.append(move)
             else:
+                choose_tries = 0
                 while filtered_normal_moves == [] and filtered_shift_moves == []:
+                    choose_tries += 1
+                    if choose_tries > 50:
+                        self.checkmated = BLACK
+                        print("Cannot find piece with valid moves, Black Checkmated")
+                        return None
                     rand_num = random.randint(0, len(black_pieces) - 1)
 
                     self.click_board(black_pieces[rand_num].row, black_pieces[rand_num].column, False)
@@ -197,13 +209,11 @@ class Game:
                     shift_moves = self.possible_moves
 
                     for move in normal_moves:
-                        if "Empty" not in move or "Enemy Stack Empty" in move:
+                        if "Empty" not in move[2] or "Enemy Stack Empty" in move[2]:
                             filtered_normal_moves.append(move)
                     for move in shift_moves:
-                        if "Empty" not in move:
+                        if "Empty" not in move[2]:
                             filtered_shift_moves.append(move)
-
-            previous_board = copy.deepcopy(self.board)
 
             # 50% it will make a stack move (friendly or enemy)(if possible), otherwise a makes a normal move (move or attack)
             if (filtered_shift_moves != [] and random.randint(0, 1) == 0) or filtered_normal_moves == []:
@@ -216,10 +226,6 @@ class Game:
                 move = filtered_normal_moves[rand_num2]
                 self.possible_moves = [move]
                 self.click_board(move[0], move[1], False)
-            
-            if previous_board == self.board:
-                print("something went wrong")
-
         else:
             print("Cannot make move, player checkmated.")
             

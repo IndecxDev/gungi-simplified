@@ -12,7 +12,7 @@ class MoveLog:
         self.description_text = description_text
         self.moves = []
     
-    def add_move(self):
+    def update_moves(self):
         pass
 
     def clear_moves(self):
