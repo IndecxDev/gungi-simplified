@@ -394,6 +394,10 @@ class Board:
         # If the player can't make any move and is in check, it's checkmate
         return True
 
+    def number_to_letter(self, number):
+        letters = "abcdefghi"
+        return letters[number]
+
     # For visualizing in the terminal
     def __repr__(self) -> str:
         state = ""

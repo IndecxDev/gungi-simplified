@@ -1,5 +1,5 @@
 import pygame
-from ..constants import BUTTON_BORDER_COLOR, BUTTON_BORDER_THICKNESS, BUTTON_CLICKED_COLOR, BUTTON_COLOR, BUTTON_HIGHLIGHTED_COLOR, BLACK, BACKGROUND_COLOR
+from ..constants import BUTTON_BORDER_COLOR, BUTTON_BORDER_THICKNESS, BUTTON_CLICKED_COLOR, BUTTON_COLOR, BUTTON_HIGHLIGHTED_COLOR, BLACK, BACKGROUND_COLOR, GREY
 from ..game import Game
 from .text import Text
 from .image import Image
@@ -51,16 +51,28 @@ class Button:
 
         if button_function == "New Game":
             game.reset()
-        if button_function == "Text Smaller":
+        elif button_function == "Text Smaller":
             self.text_object.change_font_size(self.text_object.size - 1)
-        if button_function == "Random Move":
-            if game.checkmated == None:
+        elif button_function == "Random Move":
+            if game.checkmated_state == None:
                 game.make_random_move()
+            elif game.checkmated_state == GREY:
+                print("Draw, cannot make a move.")
             else:
-                print(str(game.checkmated) + " checkmated, cannot make a move.")
-        if button_function == "Download":
+                print(game.color_to_string(game.checkmated_state) + " checkmated, cannot make a move.")
+        elif button_function == "X Random Moves":
+            for i in range(10):
+                if game.checkmated_state == None:
+                    game.make_random_move()
+                elif game.checkmated_state == GREY:
+                    print("Draw, cannot make a move.")
+                    break
+                else:
+                    print(game.color_to_string(game.checkmated_state) + " checkmated, cannot make a move.")
+                    break
+        elif button_function == "Download":
             pass
-        if button_function == "Upload":
+        elif button_function == "Upload":
             pass
 
     def deselect(self):

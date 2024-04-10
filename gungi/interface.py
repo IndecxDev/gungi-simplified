@@ -3,7 +3,7 @@ from .components.stacker import Stacker
 from .components.text import Text
 from .components.image import Image
 from .components.movelog import MoveLog
-from .constants import ICON_RESET, XOFFSET, YOFFSET, ICON_DOWNLOAD, ICON_UPLOAD, ICON_MAKE_MOVE
+from .constants import ICON_RESET, XOFFSET, YOFFSET, ICON_DOWNLOAD, ICON_UPLOAD, ICON_MAKE_MOVE, ICON_MAKE_MOVES
 from .game import Game
 import copy
 import tkinter
@@ -19,11 +19,10 @@ class Interface:
     def _init_components(self):
         self.components = {
             "New Game": Button(self.offset + 20, YOFFSET + 840, 60, 60, "New Game", Text("New Game", 18), Image(ICON_RESET)),
-            "Download": Button(self.offset + 270, YOFFSET + 840, 60, 60, "Download", Text("Download", 18), Image(ICON_DOWNLOAD)),
-            "Upload": Button(self.offset + 360, YOFFSET + 840, 60, 60, "Upload", Text("Upload", 18), Image(ICON_UPLOAD)),
             "Stacker": Stacker(self.offset, YOFFSET + 300, 100, 300, "Stack"),
             "Move Log": MoveLog(self.offset + 150, YOFFSET + 150, 400, 600, "Move Log"),
-            "Make Random Move": Button(self.offset + 20, YOFFSET, 60, 60, "Random Move", Text("Make Random Move", 18), Image(ICON_MAKE_MOVE))
+            "Make Random Move": Button(self.offset + 270, YOFFSET + 840, 60, 60, "Random Move", Text("Random Move", 18), Image(ICON_MAKE_MOVE)),
+            "X Random Moves": Button(self.offset + 360, YOFFSET + 840, 60, 60, "X Random Moves", Text("10 Moves", 18), Image(ICON_MAKE_MOVES)) 
         }
 
     def update(self, mousePos):
