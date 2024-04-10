@@ -11,7 +11,6 @@ class Board:
         self.player_in_check = None
         self.pieces_checking = []
         self.white_pieces, self.black_pieces = self.get_all_moveable_pieces()
-        print(self.white_pieces)
 
     def get_board_position_from_mouse(self, pos):
         x, y = pos
@@ -398,6 +397,9 @@ class Board:
         letters = "abcdefghi"
         return letters[number]
 
+    def extract_piece_type(self, piece):
+        return piece.__repr__()[1]
+    
     # For visualizing in the terminal
     def __repr__(self) -> str:
         state = ""

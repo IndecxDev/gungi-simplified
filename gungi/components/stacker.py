@@ -26,7 +26,7 @@ class Stacker:
         else:
             image = Image(ICON_LAYERS)
             image.draw(window, self.x + self.width // 2 - 30, self.y + self.height // 2 - 30)
-        text = Text(self.text, 30)
+        text = Text(self.text, 1)
         text.draw(window, self.x + self.width // 2, self.y - 30, BLACK, BACKGROUND_COLOR)
 
     def deselect(self):

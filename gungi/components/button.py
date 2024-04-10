@@ -3,6 +3,7 @@ from ..constants import BUTTON_BORDER_COLOR, BUTTON_BORDER_THICKNESS, BUTTON_CLI
 from ..game import Game
 from .text import Text
 from .image import Image
+from .movelog import MoveLog
 
 class Button:
     def __init__(self, x: int, y: int, width: int, height: int, function: str, text_object: Text, image_object: Image) -> None:
@@ -12,8 +13,6 @@ class Button:
         self.height = height
         self.function = function
         self.text_object = text_object
-        if text_object != None:
-            self.font = pygame.font.Font("assets/coolvetica.otf", self.text_object.size)
         self.image_object = image_object
         self.clicked = False
     
@@ -38,21 +37,19 @@ class Button:
                 center_x, center_y = self.width // 2 + self.x, self.height // 2 + self.y
                 self.text_object.draw(window, center_x, center_y, BLACK, body_color)
             else:
-                center_x, center_y = self.width // 2 + self.x, self.y - self.text_object.size - 5
+                center_x, center_y = self.width // 2 + self.x, self.y - 22
                 self.text_object.draw(window, center_x, center_y, BLACK, BACKGROUND_COLOR)
         
         # Image
         if self.image_object != None:
             self.image_object.draw(window, self.x, self.y)
 
-    def click(self, button_function, game: Game):
+    def click(self, button_function, game: Game, components: dict):
         # Doing stuff based on each button's function
         self.clicked = True
 
         if button_function == "New Game":
             game.reset()
-        elif button_function == "Text Smaller":
-            self.text_object.change_font_size(self.text_object.size - 1)
         elif button_function == "Random Move":
             if game.checkmated_state == None:
                 game.make_random_move()
@@ -60,6 +57,8 @@ class Button:
                 print("Draw, cannot make a move.")
             else:
                 print(game.color_to_string(game.checkmated_state) + " checkmated, cannot make a move.")
+            # Update Move log
+            components["Move Log"].update_text(game)
         elif button_function == "X Random Moves":
             for i in range(10):
                 if game.checkmated_state == None:
@@ -70,6 +69,8 @@ class Button:
                 else:
                     print(game.color_to_string(game.checkmated_state) + " checkmated, cannot make a move.")
                     break
+            # Update Move log
+            components["Move Log"].update_text(game)
         elif button_function == "Download":
             pass
         elif button_function == "Upload":

@@ -1,7 +1,6 @@
 from .constants import BLACK, WHITE, DEBUG, MOVE_LOGS, GREY
 from .board import Board
 import random
-import copy
 
 class Game:
     def __init__(self, window) -> None:
@@ -38,7 +37,7 @@ class Game:
         piece_clicked = self.board.get_top_piece(row, column) # Get the top piece in a stack
 
         if self.selected != "--" and self.selected.color == self.turn and self.checkmated_state == None: # Already selected a piece and moving it
-            current_move_notation = str(self.selected) + " " + str(self.board.number_to_letter(self.selected.row)) + str(self.selected.column) + "-" + str(self.selected.layer + 1)
+            current_move_notation = self.board.extract_piece_type(self.selected) + str(self.board.number_to_letter(self.selected.row)) + str(self.selected.column) + "-" + str(self.selected.layer + 1)
 
             # Logic based on type of move
             if (row, column, "Move") in self.possible_moves:
@@ -54,21 +53,21 @@ class Game:
                 self.fifty_move_rule = 0
 
                 # Move logging
-                current_move_notation += " x " + str(piece_clicked) + " " + str(self.board.number_to_letter(row)) + str(column + 1) + "-" + str(piece_clicked.layer + 1)   
+                current_move_notation += " x " + self.board.extract_piece_type(piece_clicked) + str(self.board.number_to_letter(row)) + str(column + 1) + "-" + str(piece_clicked.layer + 1)   
             elif (row, column, "Friendly Stack") in self.possible_moves:
                 if DEBUG: print(str(self.selected) + " at " + str(self.selected.row) + str(self.selected.column) + str(self.selected.layer) + " friendly-stacking on " + str(piece_clicked) + " at " + str(piece_clicked.row) + str(piece_clicked.column) + str(piece_clicked.layer))
                 self.board.move_piece(self.selected, row, column, piece_clicked.layer + 1)
                 self.fifty_move_rule = 0
 
                 # Move logging
-                current_move_notation += " ^ " + str(piece_clicked) + " " + str(self.board.number_to_letter(row)) + str(column + 1) + "-" + str(piece_clicked.layer + 2)
+                current_move_notation += " ^ " + self.board.extract_piece_type(piece_clicked) + str(self.board.number_to_letter(row)) + str(column + 1) + "-" + str(piece_clicked.layer + 2)
             elif (row, column, "Enemy Stack") in self.possible_moves:
                 if DEBUG: print(str(self.selected) + " at " + str(self.selected.row) + str(self.selected.column) + str(self.selected.layer) + " enemy-stacking on " + str(piece_clicked) + " at " + str(piece_clicked.row) + str(piece_clicked.column) + str(piece_clicked.layer))
                 self.board.move_piece(self.selected, row, column, piece_clicked.layer + 1)
                 self.fifty_move_rule = 0
 
                 # Move logging
-                current_move_notation += " ^ " + str(piece_clicked) + " " + str(self.board.number_to_letter(row)) + str(column + 1) + "-" + str(piece_clicked.layer + 2)
+                current_move_notation += " ^ " + self.board.extract_piece_type(piece_clicked) + str(self.board.number_to_letter(row)) + str(column + 1) + "-" + str(piece_clicked.layer + 2)
             else:
                 self.deselect()
                 self.click_board(row, column, shift)
@@ -96,9 +95,9 @@ class Game:
                 if self.board.checkmate_test(self.turn):
                     print(f"{self.color_to_string(self.turn)} is checkmated. Game Over.")
                     self.checkmated_state = self.turn
-                    current_move_notation += " #" # Checkmate
+                    current_move_notation += "#" # Checkmate
                 else:
-                    current_move_notation += " +" # Check
+                    current_move_notation += "+" # Check
             else:
                 self.board.pieces_checking == []
             

@@ -1,9 +1,18 @@
 import pygame
 
+smallFont = pygame.font.Font("assets/coolvetica.otf", 18)
+bigFont = pygame.font.Font("assets/coolvetica.otf", 30)
+moveLogFont = pygame.font.Font("assets/coolvetica.otf", 20)
+
 class Text:
     def __init__(self, text: str, size: int) -> None:
         self.size = size
-        self.font = pygame.font.Font("assets/coolvetica.otf", self.size)
+        if size == 0:
+            self.font = smallFont
+        elif size == 1:
+            self.font = bigFont
+        elif size == 2:
+            self.font = moveLogFont
         self.text = text
     
     def draw(self, window, center_x, center_y, color, background_color):
@@ -12,7 +21,3 @@ class Text:
             textRect = text.get_rect()
             textRect.center = (center_x, center_y)
             window.blit(text, textRect)
-    
-    def change_font_size(self, new_size):
-        self.font = pygame.font.Font("assets/coolvetica.otf", new_size)
-        self.size = new_size

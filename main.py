@@ -16,7 +16,7 @@ def main():
     run = True
     clock = pygame.time.Clock()
     game = Game(WINDOW)
-    interface = Interface(WINDOW)
+    interface = Interface(WINDOW, game)
     
     if DEBUG: print("Game Started")
 

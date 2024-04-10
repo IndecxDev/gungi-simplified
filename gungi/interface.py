@@ -3,6 +3,7 @@ from .components.stacker import Stacker
 from .components.text import Text
 from .components.image import Image
 from .components.movelog import MoveLog
+from .components.axis import Axis
 from .constants import ICON_RESET, XOFFSET, YOFFSET, ICON_DOWNLOAD, ICON_UPLOAD, ICON_MAKE_MOVE, ICON_MAKE_MOVES
 from .game import Game
 import copy
@@ -10,19 +11,20 @@ import tkinter
 
 # Basically the framework for the UI elements
 class Interface:
-    def __init__(self, window) -> None:
+    def __init__(self, window, game) -> None:
         self.window = window
         self.offset = 900 + 2 * XOFFSET # Horizontal offset from the board
 
-        self._init_components()
+        self._init_components(game)
 
-    def _init_components(self):
+    def _init_components(self, game):
         self.components = {
-            "New Game": Button(self.offset + 20, YOFFSET + 840, 60, 60, "New Game", Text("New Game", 18), Image(ICON_RESET)),
+            "New Game": Button(self.offset + 20, YOFFSET + 840, 60, 60, "New Game", Text("New Game", 0), Image(ICON_RESET)),
             "Stacker": Stacker(self.offset, YOFFSET + 300, 100, 300, "Stack"),
-            "Move Log": MoveLog(self.offset + 150, YOFFSET + 150, 400, 600, "Move Log"),
-            "Make Random Move": Button(self.offset + 270, YOFFSET + 840, 60, 60, "Random Move", Text("Random Move", 18), Image(ICON_MAKE_MOVE)),
-            "X Random Moves": Button(self.offset + 360, YOFFSET + 840, 60, 60, "X Random Moves", Text("10 Moves", 18), Image(ICON_MAKE_MOVES)) 
+            "Move Log": MoveLog(self.offset + 150, YOFFSET + 150, 400, 600, "Move Log", game),
+            "Make Random Move": Button(self.offset + 270, YOFFSET + 840, 60, 60, "Random Move", Text("Random Move", 0), Image(ICON_MAKE_MOVE)),
+            "X Random Moves": Button(self.offset + 360, YOFFSET + 840, 60, 60, "X Random Moves", Text("10 Moves", 0), Image(ICON_MAKE_MOVES)),
+            "Axis": Axis()
         }
 
     def update(self, mousePos):
@@ -33,7 +35,7 @@ class Interface:
         for name, component in self.components.items():
             if type(component) is Button:
                 if mousePos[0] >= component.x and mousePos[0] < component.x + component.width and mousePos[1] >= component.y and mousePos[1] < component.y + component.height:
-                    component.click(component.function, game)
+                    component.click(component.function, game, self.components)
             if type(component) is Stacker:
                 pieces = []
                 current_piece = game.selected
@@ -43,6 +45,8 @@ class Interface:
                         pieces.append(game.board.get_piece(game.selected.row, game.selected.column, layer))
                         layer -= 1
                 component.pieces = copy.deepcopy(pieces)
+            if type(component) is MoveLog:
+                component.update_text(game)
     
     def deselect(self):
         for name, component in self.components.items():
