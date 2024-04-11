@@ -1,7 +1,7 @@
 import pygame
 
 DEBUG = False
-MOVE_LOGS = True
+MOVE_LOGS = False
 
 # Game settings:
 
@@ -132,6 +132,7 @@ ICON_UPLOAD = pygame.image.load("assets/icons/upload.png")
 ICON_LAYERS = pygame.image.load("assets/icons/layers.png")
 ICON_MAKE_MOVE = pygame.image.load("assets/icons/right-arrow.png")
 ICON_MAKE_MOVES = pygame.image.load("assets/icons/double-right-arrow.png")
+ICON_CLOSE = pygame.image.load("assets/icons/close.png")
 
 # Movesets
 KING_MOVES = [[(-1,-1),(0,-1),(1,-1),(-1,0),(1,0),(-1,1),(0,1),(1,1)],

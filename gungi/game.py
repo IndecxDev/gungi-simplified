@@ -8,7 +8,7 @@ class Game:
         self.window = window
 
     def draw_game(self, mousePos):
-        self.board.draw(self.window, self.selected, self.possible_moves, mousePos, self.turn)
+        if self.draw: self.board.draw(self.window, self.selected, self.possible_moves, mousePos, self.turn)
         board_pos = self.board.get_board_position_from_mouse(mousePos)
         if board_pos != None:
             self.hovering_over = self.board.get_top_piece(board_pos[0], board_pos[1])
@@ -25,6 +25,8 @@ class Game:
         self.move_log = []
         self.checkmated_state = None
         self.fifty_move_rule = 0
+        self.game_message = ""
+        self.draw = True # Only turn off for when simulating lots of games at once
 
     def reset(self):
         self._init()
@@ -46,28 +48,28 @@ class Game:
                 self.fifty_move_rule += 1
 
                 # Move logging
-                current_move_notation += " > " + str(self.board.number_to_letter(row)) + str(column + 1) + "-1"
+                current_move_notation += ">" + str(self.board.number_to_letter(row)) + str(column + 1) + "-1"
             elif (row, column, "Attack") in self.possible_moves or (row, column, "Enemy Stack Empty") in self.possible_moves:
                 if DEBUG: print(str(self.selected) + " at " + str(self.selected.row) + str(self.selected.column) + str(self.selected.layer) + " taking " + str(piece_clicked) + " at " + str(piece_clicked.row) + str(piece_clicked.column) + str(piece_clicked.layer))
                 self.board.move_piece(self.selected, row, column, piece_clicked.layer)
                 self.fifty_move_rule = 0
 
                 # Move logging
-                current_move_notation += " x " + self.board.extract_piece_type(piece_clicked) + str(self.board.number_to_letter(row)) + str(column + 1) + "-" + str(piece_clicked.layer + 1)   
+                current_move_notation += "x" + self.board.extract_piece_type(piece_clicked) + str(self.board.number_to_letter(row)) + str(column + 1) + "-" + str(piece_clicked.layer + 1)   
             elif (row, column, "Friendly Stack") in self.possible_moves:
                 if DEBUG: print(str(self.selected) + " at " + str(self.selected.row) + str(self.selected.column) + str(self.selected.layer) + " friendly-stacking on " + str(piece_clicked) + " at " + str(piece_clicked.row) + str(piece_clicked.column) + str(piece_clicked.layer))
                 self.board.move_piece(self.selected, row, column, piece_clicked.layer + 1)
                 self.fifty_move_rule = 0
 
                 # Move logging
-                current_move_notation += " ^ " + self.board.extract_piece_type(piece_clicked) + str(self.board.number_to_letter(row)) + str(column + 1) + "-" + str(piece_clicked.layer + 2)
+                current_move_notation += "^" + self.board.extract_piece_type(piece_clicked) + str(self.board.number_to_letter(row)) + str(column + 1) + "-" + str(piece_clicked.layer + 2)
             elif (row, column, "Enemy Stack") in self.possible_moves:
                 if DEBUG: print(str(self.selected) + " at " + str(self.selected.row) + str(self.selected.column) + str(self.selected.layer) + " enemy-stacking on " + str(piece_clicked) + " at " + str(piece_clicked.row) + str(piece_clicked.column) + str(piece_clicked.layer))
                 self.board.move_piece(self.selected, row, column, piece_clicked.layer + 1)
                 self.fifty_move_rule = 0
 
                 # Move logging
-                current_move_notation += " ^ " + self.board.extract_piece_type(piece_clicked) + str(self.board.number_to_letter(row)) + str(column + 1) + "-" + str(piece_clicked.layer + 2)
+                current_move_notation += "^" + self.board.extract_piece_type(piece_clicked) + str(self.board.number_to_letter(row)) + str(column + 1) + "-" + str(piece_clicked.layer + 2)
             else:
                 self.deselect()
                 self.click_board(row, column, shift)
@@ -93,7 +95,7 @@ class Game:
                 if self.selected not in self.board.pieces_checking:
                     self.board.pieces_checking.append(self.selected)
                 if self.board.checkmate_test(self.turn):
-                    print(f"{self.color_to_string(self.turn)} is checkmated. Game Over.")
+                    self.game_message = f"{self.color_to_string(self.board.switch_color(self.turn))} won by checkmate"
                     self.checkmated_state = self.turn
                     current_move_notation += "#" # Checkmate
                 else:
@@ -107,11 +109,15 @@ class Game:
 
             # Special rules for a draw
             if self.fifty_move_rule >= 50 and self.checkmated_state == None:
-                print("Draw, 50-move rule.")
+                self.game_message = "Draw by 50-move rule"
+                self.checkmated_state = GREY # Grey represents a draw
+            elif len(self.board.get_all_pieces(False)[0]) == 1 and len(self.board.get_all_pieces(False)[1]) == 1:
+                self.game_message = "Draw by insufficient material"
                 self.checkmated_state = GREY
-            elif len(self.board.get_all_moveable_pieces()[0]) == 1 and len(self.board.get_all_moveable_pieces()[1]) == 1:
-                print("Draw, too few pieces.")
-                self.checkmated_state = GREY
+
+            # Ending message
+            if self.game_message != "":
+                print(self.game_message)
 
             if self.turn == WHITE: 
                 self.move_number += 1 # Add 1 to move number after both players play
@@ -121,7 +127,7 @@ class Game:
 
             self.selected = "--"
             self.possible_moves = []
-        else: # Selecting a piece
+        elif self.checkmated_state == None: # Selecting a piece
             # If clicked on an empty square
             if piece_clicked == "--":
                 self.selected = "--"
@@ -183,7 +189,7 @@ class Game:
 
     def make_random_move(self): # Simulates player clicks, first selects the piece, then clicks on the board to move
         if self.checkmated_state == None:
-            white_pieces, black_pieces = self.board.get_all_moveable_pieces()
+            white_pieces, black_pieces = self.board.get_all_pieces(True)
             filtered_normal_moves = []
             filtered_shift_moves = []
             chosen_piece = None
@@ -192,7 +198,7 @@ class Game:
                 choose_tries = 0
                 while filtered_normal_moves == [] and filtered_shift_moves == []:
                     choose_tries += 1
-                    if choose_tries > 50:
+                    if choose_tries > 100:
                         self.checkmated_state = WHITE
                         print("Cannot find piece with valid moves, White Checkmated")
                         return None
@@ -217,7 +223,7 @@ class Game:
                 choose_tries = 0
                 while filtered_normal_moves == [] and filtered_shift_moves == []:
                     choose_tries += 1
-                    if choose_tries > 50:
+                    if choose_tries > 100:
                         self.checkmated_state = BLACK
                         print("Cannot find piece with valid moves, Black Checkmated")
                         return None

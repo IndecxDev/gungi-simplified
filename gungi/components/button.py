@@ -1,9 +1,8 @@
 import pygame
-from ..constants import BUTTON_BORDER_COLOR, BUTTON_BORDER_THICKNESS, BUTTON_CLICKED_COLOR, BUTTON_COLOR, BUTTON_HIGHLIGHTED_COLOR, BLACK, BACKGROUND_COLOR, GREY
+from ..constants import BUTTON_BORDER_COLOR, BUTTON_BORDER_THICKNESS, BUTTON_CLICKED_COLOR, BUTTON_COLOR, BUTTON_HIGHLIGHTED_COLOR, BLACK, WHITE, BACKGROUND_COLOR, GREY
 from ..game import Game
 from .text import Text
 from .image import Image
-from .movelog import MoveLog
 
 class Button:
     def __init__(self, x: int, y: int, width: int, height: int, function: str, text_object: Text, image_object: Image) -> None:
@@ -50,6 +49,7 @@ class Button:
 
         if button_function == "New Game":
             game.reset()
+            components["Ending"].reset()
         elif button_function == "Random Move":
             if game.checkmated_state == None:
                 game.make_random_move()
@@ -60,7 +60,7 @@ class Button:
             # Update Move log
             components["Move Log"].update_text(game)
         elif button_function == "X Random Moves":
-            for i in range(10):
+            for i in range(20):
                 if game.checkmated_state == None:
                     game.make_random_move()
                 elif game.checkmated_state == GREY:
@@ -71,10 +71,8 @@ class Button:
                     break
             # Update Move log
             components["Move Log"].update_text(game)
-        elif button_function == "Download":
-            pass
-        elif button_function == "Upload":
-            pass
+        elif button_function == "Close Ending":
+            components["Ending"].closed = True    
 
     def deselect(self):
         self.clicked = False

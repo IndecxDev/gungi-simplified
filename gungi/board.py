@@ -10,7 +10,7 @@ class Board:
         self.black_king_pos = None
         self.player_in_check = None
         self.pieces_checking = []
-        self.white_pieces, self.black_pieces = self.get_all_moveable_pieces()
+        self.white_pieces, self.black_pieces = self.get_all_pieces(True)
 
     def get_board_position_from_mouse(self, pos):
         x, y = pos
@@ -307,17 +307,28 @@ class Board:
         return moves
 
     # Returns all white pieces and all black pieces on the board
-    def get_all_moveable_pieces(self):
+    def get_all_pieces(self, only_moveable: bool):
         white_pieces = []
         black_pieces = []
         for row in range(ROWS):
             for column in range(COLUMNS):
                 piece = self.get_top_piece(row, column)
                 if piece != "--":
-                    if piece.color == WHITE:
-                        white_pieces.append(piece)
-                    elif piece.color == BLACK:
-                        black_pieces.append(piece)
+                    if only_moveable:
+                        if piece.color == WHITE:
+                            white_pieces.append(piece)
+                        elif piece.color == BLACK:
+                            black_pieces.append(piece)
+                    else:
+                        layer = piece.layer
+                        while layer >= 0:
+                            piece = self.get_piece(row, column, layer)
+                            if piece.color == WHITE:
+                                white_pieces.append(piece)
+                            elif piece.color == BLACK:
+                                black_pieces.append(piece)
+                            layer -= 1
+
         return (white_pieces, black_pieces)                 
 
     def in_check(self, player): # Returns if the player is in check
@@ -342,7 +353,7 @@ class Board:
                 section.append(0)
             threat_map.append(section)
 
-        # This way of doing it is still slow but it's good enough
+        # This way of doing it is still slow (since this is called very often) but it's good enough
         for row in range(ROWS):
             for column in range(COLUMNS):
                 piece = self.get_top_piece(row, column)
