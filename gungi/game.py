@@ -39,7 +39,7 @@ class Game:
         piece_clicked = self.board.get_top_piece(row, column) # Get the top piece in a stack
 
         if self.selected != "--" and self.selected.color == self.turn and self.checkmated_state == None: # Already selected a piece and moving it
-            current_move_notation = self.board.extract_piece_type(self.selected) + str(self.board.number_to_letter(self.selected.row)) + str(self.selected.column) + "-" + str(self.selected.layer + 1)
+            current_move_notation = self.board.extract_piece_type(self.selected) + str(self.board.number_to_letter(self.selected.row)) + str(self.selected.column + 1) + "-" + str(self.selected.layer + 1)
 
             # Logic based on type of move
             if (row, column, "Move") in self.possible_moves:
